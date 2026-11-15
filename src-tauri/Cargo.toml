@@ -1,0 +1,51 @@
+[package]
+name = "mdm"
+version = "0.1.0"
+description = "Mak Download Manager - High Performance Download Engine"
+authors = ["Mert Ali"]
+edition = "2021"
+default-run = "mdm"
+
+[lib]
+name = "mdm_lib"
+crate-type = ["lib", "cdylib"]
+test = false
+
+[[bin]]
+name = "mdm"
+path = "src/main.rs"
+
+[[bin]]
+name = "mdm_host"
+path = "src/bin/mdm_host.rs"
+
+[build-dependencies]
+tauri-build = { version = "2.2", features = [] }
+
+[dependencies]
+tauri = { version = "2.2", features = ["tray-icon"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.43", features = ["full"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
+rusqlite = { version = "0.33", features = ["bundled"] }
+uuid = { version = "1.12", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "2.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+futures-util = "0.3"
+url = "2.5"
+percent-encoding = "2.3"
+sha2 = "0.10"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+opt-level = 2
+debug = false
+strip = true
+lto = "thin"
+codegen-units = 4

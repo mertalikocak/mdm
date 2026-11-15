@@ -1,0 +1,9 @@
+{
+  "name": "com.mak.mdm",
+  "description": "Mak Download Manager Native Messaging Host",
+  "path": "mdm_host.exe",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://pgeehhablgafglpdgcdnbpfgfcdajijb/"
+  ]
+}

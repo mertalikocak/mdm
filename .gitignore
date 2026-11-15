@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build & distribution outputs
+dist/
+dist-installer/
+drive-yuklenecekler/
+src-tauri/target/
+src-tauri/resources/
+src-tauri/gen/schemas/
+
+# Logs & scratch outputs
+*.log
+err.txt
+out.txt
+tauri_app.rs
+
+# Runtime databases & temp files
+*.db
+*.db-wal
+*.db-shm
+
+# OS & environment files
+.DS_Store
+Thumbs.db
+.env
+.env.*

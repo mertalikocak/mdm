@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mak Download Manager</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-area">
+        <img src="icons/icon48.png" alt="MDM" class="logo-icon">
+        <div>
+          <h1 class="title">Mak Download Manager</h1>
+          <p class="subtitle">Brave & Chrome Entegrasyonu</p>
+        </div>
+      </div>
+      <div id="statusBadge" class="status-badge connecting">
+        <span class="status-dot"></span>
+        <span id="statusText">Bağlanıyor...</span>
+      </div>
+    </header>
+
+    <!-- Quick Action / Open App -->
+    <div class="action-card">
+      <button id="btnOpenApp" class="btn-primary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+          <polyline points="15 3 21 3 21 9"></polyline>
+          <line x1="10" y1="14" x2="21" y2="3"></line>
+        </svg>
+        <span>MDM Uygulamasını Aç</span>
+      </button>
+    </div>
+
+    <!-- Quick Download Input -->
+    <div class="card">
+      <label class="card-label">Hızlı İndirme (URL)</label>
+      <div class="input-group">
+        <input type="text" id="inputUrl" placeholder="https://example.com/dosya.zip" class="input-text">
+        <button id="btnSendDownload" class="btn-send">İndir</button>
+      </div>
+      <div id="messageBox" class="message-box hidden"></div>
+    </div>
+
+    <!-- Settings & Toggles -->
+    <div class="card">
+      <div class="setting-item">
+        <div class="setting-text">
+          <span class="setting-title">Otomatik İndirme Yakalama</span>
+          <span class="setting-desc">Tarayıcıdaki doğrudan dosya indirmelerini MDM'ye aktarır</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggleIntercept">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Limitations Notice -->
+    <div class="info-note">
+      <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      <p>
+        <strong>Not:</strong> Sayfadaki herhangi bir bağlantıya veya video alanına <strong>sağ tıklayarak</strong> MDM ile indirebilirsiniz. <em>blob:</em> ve <em>data:</em> nesneleri tarayıcı içi bellek nesnesi olduğundan harici aktarılamaz.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>v1.0.0</span>
+      <span>Native Messaging Host: com.mak.mdm</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

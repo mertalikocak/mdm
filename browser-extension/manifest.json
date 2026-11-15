@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Mak Download Manager (MDM) Entegrasyonu",
+  "version": "1.0.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0B9e5JNR+Hl0hMWDM9HzebxlJNlwQy88XKkKPYPXNc5cbQE7OPV6W/6KLtmfqQ1OPUIIW2Pn8ctkdUiBAhwqQu1eiGbfEBo8cSjHMY9ZwYm2jOU8XuFLyNdpq35VkjvxukByPvZtxtHJClBBnaRErkQKH49Nx+NBFePpP0RotLtaD/o5PNiHAimdt2IO5ooliRiAAWY2MGhabBMx4V+Xm9Cr6xO7sTAvyI8ghnaaY7HWnNxJ4zAkh9dPLdR3QN33TGiJbN5SdbnFmFBYNXLFYT4fvXiS+3/KVAf2s+Ao/BNkTwthK6LOTq0oNIF9e60vDI+Vxotc/bIQeFyaQbi31QIDAQAB",
+  "description": "Google Chrome ve Brave için yüksek hızlı dosya ve video indirme entegrasyonu",
+  "permissions": [
+    "nativeMessaging",
+    "contextMenus",
+    "downloads",
+    "storage",
+    "cookies",
+    "notifications",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Mak Download Manager",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
