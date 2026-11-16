@@ -219,3 +219,15 @@
 - `cmd /c "cd src-tauri && cargo test && cargo build --release --bins --features custom-protocol"` -> exit code `0` (`tests\integration_tests.rs`: 31 passed, 0 failed in `4.11s`; release compiled in `1m 27s`).
 - Synced binaries & extension files, rebuilt extension ZIP and NSIS installer (`7,339,987` bytes), updated archives and `latest.json` (`sha256: 90c559f80b9a3be172952dd58c499439ddf922f0cabd9f2e496d0f878a7dde3b`).
 **Known issues:** Existing browser installations must reload the unpacked extension (`browser-extension`) and reinstall or update `mdm.exe` / `mdm_host.exe`.
+
+### [2026-11-16] - GitHub Releases Landing Page Links
+
+**Summary:** Updated the landing page generator (`scripts/build_landing_page.cjs`) so all download buttons and navigation links point to official GitHub Releases and repository URLs.
+**Modified files:** `scripts/build_landing_page.cjs`, `mdm_tanitim.html`, `docs/PROJECT_CONTEXT.md`.
+**Technical details:**
+- Populated `DRIVE_CONFIG` and `<a id="dlSetup">`, `<a id="dlExt">`, `<a id="dlPortable">` URLs with `https://github.com/mertalikocak/mdm/releases/latest/download/...` direct asset links (`Mak.Download.Manager_0.1.0_x64-setup.exe`, `mdm-browser-extension-v1.0.0.zip`, `mdm-portable-v0.1.0-x64.zip`).
+- Added a GitHub repository link in `.nav-links` and a Releases link in `<footer>`.
+- Ran `node scripts/build_landing_page.cjs` to regenerate `mdm_tanitim.html`, `dist-installer/index.html`, and `drive-yuklenecekler/mdm_tanitim.html` (`2710 KB`).
+**Database changes:** None.
+**Tests:** `cmd /c "node scripts/build_landing_page.cjs"` -> exit code `0`.
+**Known issues:** Requires `v0.1.0` GitHub Release assets to be published so `/releases/latest/download/...` resolves live.

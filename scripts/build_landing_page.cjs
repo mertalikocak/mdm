@@ -1226,6 +1226,7 @@ const html = `<!DOCTYPE html>
         <a href="#install">Kurulum Rehberi</a>
         <a href="#architecture">Çalışma Mantığı</a>
         <a href="#faq">Sorun Giderme</a>
+        <a href="https://github.com/mertalikocak/mdm" target="_blank" rel="noopener noreferrer">GitHub</a>
       </nav>
 
       <div class="header-actions">
@@ -1276,7 +1277,7 @@ const html = `<!DOCTYPE html>
                 <span class="mono">Mak Download Manager_0.1.0_x64-setup.exe</span> · Kullanıcı dizinine kurulum (yönetici izni gerekmez), Native Messaging otomatik kaydedilir.
               </div>
             </div>
-            <a id="dlSetup" href="#" download class="dl-btn primary">
+            <a id="dlSetup" href="https://github.com/mertalikocak/mdm/releases/latest/download/Mak.Download.Manager_0.1.0_x64-setup.exe" target="_blank" rel="noopener noreferrer" class="dl-btn primary">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
@@ -1297,7 +1298,7 @@ const html = `<!DOCTYPE html>
                 <span class="mono">mdm-browser-extension-v1.0.0.zip</span> · Sağ tık yakalama, video üstü indirme butonu ve otomatik bağlantı aktarımı.
               </div>
             </div>
-            <a id="dlExt" href="#" download class="dl-btn">
+            <a id="dlExt" href="https://github.com/mertalikocak/mdm/releases/latest/download/mdm-browser-extension-v1.0.0.zip" target="_blank" rel="noopener noreferrer" class="dl-btn">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
@@ -1318,7 +1319,7 @@ const html = `<!DOCTYPE html>
                 <span class="mono">mdm-portable-v0.1.0-x64.zip</span> · <span class="mono">mdm.exe</span>, <span class="mono">mdm_host.exe</span> ve <span class="mono">browser-extension/</span> içerir; çıkartıp doğrudan çalıştırın.
               </div>
             </div>
-            <a id="dlPortable" href="#" download class="dl-btn">
+            <a id="dlPortable" href="https://github.com/mertalikocak/mdm/releases/latest/download/mdm-portable-v0.1.0-x64.zip" target="_blank" rel="noopener noreferrer" class="dl-btn">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
@@ -1910,6 +1911,7 @@ const html = `<!DOCTYPE html>
       </div>
       <div style="display: flex; gap: 16px;">
         <span>Geliştirici: Mert Ali</span>
+        <a href="https://github.com/mertalikocak/mdm/releases" target="_blank" rel="noopener noreferrer">Sürümler (GitHub)</a>
         <a href="#download">Yukarı Çık</a>
       </div>
     </div>
@@ -1934,13 +1936,11 @@ const html = `<!DOCTYPE html>
   </div>
 
   <script>
-    // Google Drive'a tek HTML olarak yüklerseniz, dosya indirme linklerini buraya girebilirsiniz.
-    // Örnek Drive direkt indirme linki: "https://drive.google.com/uc?export=download&id=DOSYA_ID"
-    // Boş bırakıldığında sayfa aynı klasördeki dosya adlarına (./...) bağlanır.
+    // GitHub Releases resmi doğrudan indirme linkleri:
     const DRIVE_CONFIG = {
-      setupExe: "",     // Mak Download Manager_0.1.0_x64-setup.exe veya mdm-setup-v0.1.0-x64.zip
-      extensionZip: "", // mdm-browser-extension-v1.0.0.zip
-      portableZip: ""   // mdm-portable-v0.1.0-x64.zip
+      setupExe: "https://github.com/mertalikocak/mdm/releases/latest/download/Mak.Download.Manager_0.1.0_x64-setup.exe",
+      extensionZip: "https://github.com/mertalikocak/mdm/releases/latest/download/mdm-browser-extension-v1.0.0.zip",
+      portableZip: "https://github.com/mertalikocak/mdm/releases/latest/download/mdm-portable-v0.1.0-x64.zip"
     };
 
     const SHOTS = {

@@ -82,14 +82,11 @@ SQLite database initialized in `%LOCALAPPDATA%\mdm` (WAL mode):
 
 ## Session Handoff
 - **Completed this session**:
-  - Fixed startup ghost downloads, multiple tray instances, and reboot deletion/status resurrection (`browser-extension/background.js`, `src-tauri/src/main.rs`, `src-tauri/src/bin/mdm_host.rs`, `src-tauri/src/native_messaging/mod.rs`, `src-tauri/src/db/repository.rs`):
-    - Restricted `shouldInterceptDownload` in `background.js` to active (`in_progress`), unpaused, non-extension downloads started within the last 15 seconds so browser startup history replay is ignored.
-    - Added Windows named kernel mutex `Local\MakDownloadManager_SingleInstance_v1` in `src-tauri/src/main.rs` + `is_mdm_app_running()` guard and hidden `Command::new` spawn in `launch_mdm_app()` (`native_messaging/mod.rs`) + 10x250ms IPC launch retry loop in `src-tauri/src/bin/mdm_host.rs`.
-    - Hardened SQLite WAL durability (`PRAGMA synchronous = FULL`, `PRAGMA wal_checkpoint(PASSIVE)` on `delete_task`) and updated `reconcile_on_startup()` to finalize already-merged tasks whose destination file matches `total_bytes` without `.part0`/`.mdmpart` files on disk.
-  - Verified `npx tsc --noEmit && npm run build` (exit 0, `2.84s`), `cargo test` (`31 passed, 0 failed` in `4.11s`), `cargo build --release --bins --features custom-protocol` (`1m 27s`), synced locally, rebuilt extension ZIP + NSIS installer (`7,339,987` bytes, SHA-256 `90c559f80b9a3be172952dd58c499439ddf922f0cabd9f2e496d0f878a7dde3b`), and updated `latest.json`.
-- **Remaining/incomplete work**: Push commit to `https://github.com/mertalikocak/mdm.git`; user updating browser extension & reinstalling/publishing GitHub Release `v0.1.0` on other PCs.
-- **Current implementation status**: All fixes verified, compiled, packaged, and ready to push.
+  - Updated [scripts/build_landing_page.cjs](scripts/build_landing_page.cjs) and regenerated [mdm_tanitim.html](mdm_tanitim.html), `dist-installer/index.html`, and `drive-yuklenecekler/mdm_tanitim.html` with official GitHub Releases download links (`Mak.Download.Manager_0.1.0_x64-setup.exe`, `mdm-browser-extension-v1.0.0.zip`, `mdm-portable-v0.1.0-x64.zip`), header GitHub repo link, and footer Releases link.
+  - Prior this session: fixed browser startup history re-interception, single-instance Win32 mutex, `mdm_host.exe` IPC launch retry, and SQLite WAL `FULL` durability + startup reconciliation.
+- **Remaining/incomplete work**: Push updated landing page docs commit to `origin main`, then create/upload GitHub Release `v0.1.0` assets (`Mak.Download.Manager_0.1.0_x64-setup.exe`, `mdm-browser-extension-v1.0.0.zip`, `mdm-portable-v0.1.0-x64.zip`, `latest.json`).
+- **Current implementation status**: HTML landing pages regenerated and ready for push & Release publishing.
 - **Known errors or blockers**: None.
-- **Exact next recommended step**: Push to GitHub `main` and reload unpacked extension / reinstall setup on target PC.
-- **Important files to inspect when continuing**: `browser-extension/background.js`, `src-tauri/src/main.rs`, `src-tauri/src/bin/mdm_host.rs`, `src-tauri/src/db/repository.rs`.
-- **Tests still to be executed**: Live PC reboot / Chrome startup verification with pre-existing Chrome download history.
+- **Exact next recommended step**: Push to `main` and publish GitHub Release `v0.1.0`.
+- **Important files to inspect when continuing**: `scripts/build_landing_page.cjs`, `mdm_tanitim.html`, `latest.json`.
+- **Tests still to be executed**: Live verification of download buttons on GitHub Release `v0.1.0` once uploaded.
