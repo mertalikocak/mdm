@@ -82,12 +82,11 @@ SQLite database initialized in `%LOCALAPPDATA%\mdm` (WAL mode):
 
 ## Session Handoff
 - **Completed this session**:
-  - Added zero-setup automatic `yt-dlp` + `FFmpeg` provisioning (`src-tauri/src/video/manager.rs`, `commands.rs`, `lib.rs`, `src/components/SettingsModal.tsx`, `README.md`): `VideoManager::ensure_all_tools()` runs asynchronously on app startup to download missing `yt-dlp.exe` and `ffmpeg.exe`/`ffprobe.exe` into `%LOCALAPPDATA%\mdm\bin` without inflating the ~7.3 MB installer; `VideoManager::analyze_video_with_headers()` (`probe_video_info`) and `start_video_download()` also auto-provision under `ytdlp_install_lock`/`ffmpeg_install_lock` if needed, emitting `"video-tools-updated"` so `SettingsModal` updates live.
-  - Added integration test `test_video_manager_ensure_tools_and_scheme_validation` in `src-tauri/tests/integration_tests.rs`.
-  - Verified `npx tsc --noEmit && npm run build` (exit 0, `4.97s`), `cargo test` (`31 passed, 0 failed` in `4.10s`), `cargo build --release --bins --features custom-protocol` (`1m 52s`), rebuilt NSIS installer `Mak Download Manager_0.1.0_x64-setup.exe` (`7,337,060` bytes, SHA-256 `8e637b89d41d7a79af1624602c4c0447473dfc22c12bd2e87ad289f98ddfd19e`), and updated `latest.json` + distribution archives.
-- **Remaining/incomplete work**: Push updated commit to `https://github.com/mertalikocak/mdm.git`; user publishing GitHub Release `v0.1.0` with `Mak Download Manager_0.1.0_x64-setup.exe` and `latest.json`.
-- **Current implementation status**: All code, tests, binaries, NSIS setup, and docs are updated and verified.
+  - Fixed horizontal overflow in `DownloadTable`, `Sidebar`, and `Navbar` (`src/components/DownloadTable.tsx`, `src/components/Sidebar.tsx`, `src/components/Navbar.tsx`) so default `1150px` and smaller window sizes no longer clip right-side **"İşlemler"** actions or toolbar controls: switched the table to `table-fixed w-full`, tightened fixed column widths so long filenames truncate cleanly inside `Dosya Adı`, added responsive breakpoints (`w-14 md:w-44 lg:w-52` sidebar, progressive column visibility on narrow windows, `min-w-0` / `shrink-0` navbar guards).
+  - Verified `npx tsc --noEmit && npm run build` (exit 0, `4.80s`), rebuilt release binaries (`cargo build --release --bins --features custom-protocol`, exit 0, `2m 17s`), synced locally, rebuilt NSIS installer `Mak Download Manager_0.1.0_x64-setup.exe` (`7,337,270` bytes, SHA-256 `d4a36e47d5c1d7991cfb74bad422319e2c2edf5423912f8e266975900f572caf`), and refreshed `latest.json` + distribution archives.
+- **Remaining/incomplete work**: Push responsive layout commit to `https://github.com/mertalikocak/mdm.git`; user publishing GitHub Release `v0.1.0` with `Mak Download Manager_0.1.0_x64-setup.exe` and `latest.json`.
+- **Current implementation status**: All code, binaries, NSIS installer, and docs updated cleanly.
 - **Known errors or blockers**: None.
-- **Exact next recommended step**: Push to GitHub `main` and create Release `v0.1.0` uploading `Mak Download Manager_0.1.0_x64-setup.exe` and `latest.json`.
-- **Important files to inspect when continuing**: `src-tauri/src/video/manager.rs`, `src-tauri/src/video/binaries.rs`, `src-tauri/src/lib.rs`, `src/components/SettingsModal.tsx`.
-- **Tests still to be executed**: Live end-to-end test on a clean Windows environment without pre-existing `%LOCALAPPDATA%\mdm\bin`.
+- **Exact next recommended step**: Push to GitHub `main` and visually verify MDM window resizing on Windows desktop.
+- **Important files to inspect when continuing**: `src/components/DownloadTable.tsx`, `src/components/Sidebar.tsx`, `src/components/Navbar.tsx`.
+- **Tests still to be executed**: Live desktop resize check across `650px`–`1150px` window widths (Rust tests were not re-run for this CSS/TSX-only edit; last passed 31/31 prior to UI tweak).

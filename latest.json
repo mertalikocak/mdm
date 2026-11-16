@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
-  "notes": "Mak Download Manager v0.1.0: İlk açılışta ve ihtiyaç anında yt-dlp + FFmpeg otomatik kurulumu, çok parçalı paralel indirme (8 varsayılan bağlantı), birleştirme 0->100% ilerleme göstergesi, gömülü HLS/DASH video yakalayıcı, çift indirme engelleme, tamamlanınca tek tıkla aç/kapat ve GitHub Releases tabanlı dahili otomatik güncelleyici.",
+  "notes": "Mak Download Manager v0.1.0: İlk açılışta ve ihtiyaç anında yt-dlp + FFmpeg otomatik kurulumu, küçük/orta pencere boyutlarına uyumlu duyarlı tablo düzeni, çok parçalı paralel indirme (8 varsayılan bağlantı), birleştirme 0->100% ilerleme göstergesi, gömülü HLS/DASH video yakalayıcı, çift indirme engelleme, tamamlanınca tek tıkla aç/kapat ve GitHub Releases tabanlı dahili otomatik güncelleyici.",
   "setup_url": "https://github.com/mertalikocak/mdm/releases/latest/download/Mak.Download.Manager_0.1.0_x64-setup.exe",
-  "sha256": "8e637b89d41d7a79af1624602c4c0447473dfc22c12bd2e87ad289f98ddfd19e",
-  "published_at": "2026-11-16T06:24:51Z"
+  "sha256": "d4a36e47d5c1d7991cfb74bad422319e2c2edf5423912f8e266975900f572caf",
+  "published_at": "2026-11-16T12:31:20Z"
 }

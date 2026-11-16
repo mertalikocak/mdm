@@ -103,17 +103,17 @@ export const DownloadTable: React.FC<Props> = ({
   }
 
   return (
-    <div className="flex-1 overflow-auto bg-white dark:bg-[#181b20]">
-      <table className="w-full text-left text-xs border-collapse">
+    <div className="flex-1 overflow-auto bg-white dark:bg-[#181b20] min-w-0">
+      <table className="w-full table-fixed text-left text-xs border-collapse">
         <thead className="sticky top-0 bg-[#f5f6f8] dark:bg-[#1f242b] border-b border-slate-300 dark:border-slate-700 text-[11px] font-semibold text-slate-600 dark:text-slate-300 select-none z-10">
           <tr>
-            <th className="py-2 px-3 w-[270px] border-r border-slate-200 dark:border-slate-800">Dosya Adı</th>
-            <th className="py-2 px-2.5 w-[110px] border-r border-slate-200 dark:border-slate-800">Durum</th>
-            <th className="py-2 px-3 min-w-[180px] border-r border-slate-200 dark:border-slate-800">İlerleme</th>
-            <th className="py-2 px-2.5 w-[145px] border-r border-slate-200 dark:border-slate-800">Boyut</th>
-            <th className="py-2 px-2.5 w-[95px] border-r border-slate-200 dark:border-slate-800">Hız</th>
-            <th className="py-2 px-2.5 w-[80px] border-r border-slate-200 dark:border-slate-800">Kalan Süre</th>
-            <th className="py-2 px-3 text-right w-[130px]">İşlemler</th>
+            <th className="py-2 px-2.5 lg:px-3 border-r border-slate-200 dark:border-slate-800">Dosya Adı</th>
+            <th className="py-2 px-1.5 lg:px-2 w-[104px] lg:w-[112px] border-r border-slate-200 dark:border-slate-800">Durum</th>
+            <th className="py-2 px-2 lg:px-3 w-[115px] md:w-[130px] lg:w-[160px] border-r border-slate-200 dark:border-slate-800">İlerleme</th>
+            <th className="py-2 px-2 w-[88px] lg:w-[112px] border-r border-slate-200 dark:border-slate-800">Boyut</th>
+            <th className="hidden md:table-cell py-2 px-2 w-[74px] lg:w-[84px] border-r border-slate-200 dark:border-slate-800">Hız</th>
+            <th className="hidden lg:table-cell py-2 px-2 w-[74px] border-r border-slate-200 dark:border-slate-800">Kalan Süre</th>
+            <th className="py-2 px-2 lg:px-3 text-right w-[92px] lg:w-[104px]">İşlemler</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80">
@@ -136,12 +136,12 @@ export const DownloadTable: React.FC<Props> = ({
                 className="hover:bg-blue-50/60 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
               >
                 {/* Dosya Adı & Konum */}
-                <td className="py-2 px-3">
-                  <div className="flex items-center gap-2.5">
+                <td className="py-2 px-2.5 lg:px-3 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
                     <div className="p-1.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
                       {getFileIcon(task.filename)}
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div
                         className="font-medium text-slate-900 dark:text-slate-100 truncate text-xs"
                         title={task.filename}
@@ -149,7 +149,7 @@ export const DownloadTable: React.FC<Props> = ({
                         {task.filename}
                       </div>
                       <div
-                        className="text-[10.5px] text-slate-400 dark:text-slate-500 truncate max-w-[225px]"
+                        className="text-[10.5px] text-slate-400 dark:text-slate-500 truncate"
                         title={task.destination_path}
                       >
                         {task.destination_path}
@@ -164,12 +164,12 @@ export const DownloadTable: React.FC<Props> = ({
                 </td>
 
                 {/* Durum */}
-                <td className="py-2 px-2.5">
+                <td className="py-2 px-1.5 lg:px-2">
                   <StatusBadge status={task.status} />
                 </td>
 
                 {/* İlerleme */}
-                <td className="py-2 px-3">
+                <td className="py-2 px-2 lg:px-3">
                   <SegmentVisualizer
                     segments={task.segments}
                     totalBytes={task.total_bytes}
@@ -178,15 +178,15 @@ export const DownloadTable: React.FC<Props> = ({
                 </td>
 
                 {/* Boyut */}
-                <td className="py-2 px-2.5 text-[11.5px] text-slate-700 dark:text-slate-200 font-mono tabular-nums whitespace-nowrap">
+                <td className="py-2 px-2 text-[11px] lg:text-[11.5px] text-slate-700 dark:text-slate-200 font-mono tabular-nums whitespace-nowrap">
                   <div>{formatBytes(task.downloaded_bytes)}</div>
-                  <div className="text-[10.5px] text-slate-400 dark:text-slate-500">
+                  <div className="text-[10.5px] text-slate-400 dark:text-slate-500 truncate">
                     / {task.total_bytes ? formatBytes(task.total_bytes) : 'Bilinmiyor'}
                   </div>
                 </td>
 
                 {/* Hız */}
-                <td className="py-2 px-2.5 text-[11.5px] font-mono tabular-nums whitespace-nowrap">
+                <td className="hidden md:table-cell py-2 px-2 text-[11px] lg:text-[11.5px] font-mono tabular-nums whitespace-nowrap">
                   {task.status === 'downloading' ? (
                     <span className="text-blue-600 dark:text-blue-400 font-semibold">
                       {formatSpeed(task.speed_bytes_per_sec)}
@@ -197,18 +197,18 @@ export const DownloadTable: React.FC<Props> = ({
                 </td>
 
                 {/* Kalan Süre */}
-                <td className="py-2 px-2.5 text-[11.5px] font-mono tabular-nums text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                <td className="hidden lg:table-cell py-2 px-2 text-[11.5px] font-mono tabular-nums text-slate-600 dark:text-slate-400 whitespace-nowrap">
                   {task.status === 'downloading' ? formatEta(task.eta_seconds) : '--:--'}
                 </td>
 
                 {/* İşlemler */}
-                <td className="py-2 px-3 text-right whitespace-nowrap">
+                <td className="py-2 px-2 lg:px-3 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-0.5">
                     {task.status === 'downloading' && (
                       <button
                         onClick={() => onPause(task.id)}
                         title="Duraklat"
-                        className="p-1.5 rounded text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors"
+                        className="p-1 lg:p-1.5 rounded text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors"
                       >
                         <Pause className="w-3.5 h-3.5" />
                       </button>
@@ -218,7 +218,7 @@ export const DownloadTable: React.FC<Props> = ({
                       <button
                         onClick={() => onResume(task.id)}
                         title="Devam Et"
-                        className="p-1.5 rounded text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors"
+                        className="p-1 lg:p-1.5 rounded text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors"
                       >
                         <Play className="w-3.5 h-3.5" />
                       </button>
@@ -228,7 +228,7 @@ export const DownloadTable: React.FC<Props> = ({
                       <button
                         onClick={() => onRetry(task.id)}
                         title="Yeniden Dene"
-                        className="p-1.5 rounded text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors"
+                        className="p-1 lg:p-1.5 rounded text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
                       </button>
@@ -238,7 +238,7 @@ export const DownloadTable: React.FC<Props> = ({
                       <button
                         onClick={() => onOpenFile(task.destination_path)}
                         title="Dosyayı Aç"
-                        className="p-1.5 rounded text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors"
+                        className="p-1 lg:p-1.5 rounded text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                       </button>
@@ -248,7 +248,7 @@ export const DownloadTable: React.FC<Props> = ({
                       <button
                         onClick={() => onCancel(task.id)}
                         title="İptal Et"
-                        className="p-1.5 rounded text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-950/50 transition-colors"
+                        className="p-1 lg:p-1.5 rounded text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-950/50 transition-colors"
                       >
                         <Square className="w-3 h-3" />
                       </button>
@@ -257,7 +257,7 @@ export const DownloadTable: React.FC<Props> = ({
                     <button
                       onClick={() => onOpenFolder(task.destination_path)}
                       title="Klasörü Aç"
-                      className="p-1.5 rounded text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors"
+                      className="p-1 lg:p-1.5 rounded text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors"
                     >
                       <FolderOpen className="w-3.5 h-3.5" />
                     </button>
@@ -265,7 +265,7 @@ export const DownloadTable: React.FC<Props> = ({
                     <button
                       onClick={() => onRemove(task.id)}
                       title="Listeden Kaldır"
-                      className="p-1.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-950/50 transition-colors"
+                      className="p-1 lg:p-1.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-950/50 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

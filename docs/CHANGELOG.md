@@ -190,3 +190,17 @@
 - `cmd /c "cd src-tauri && cargo test && cargo build --release --bins --features custom-protocol"` -> exit code `0` (`tests\integration_tests.rs`: 31 passed, 0 failed in `4.10s`; release compiled in `1m 52s`).
 - Synced binaries, rebuilt NSIS installer via `makensis.exe /V2` (`7,337,060` bytes), updated ZIPs and `latest.json` (`sha256: 8e637b89d41d7a79af1624602c4c0447473dfc22c12bd2e87ad289f98ddfd19e`).
 **Known issues:** Requires internet access on first run or first video request if `%LOCALAPPDATA%\mdm\bin` is empty.
+
+### [2026-11-16] - Responsive Table, Sidebar, and Navbar Layout for Smaller Windows
+
+**Summary:** Fixed right-edge horizontal clipping of the download table (`İşlemler` column) and improved responsive layout across smaller desktop window widths.
+**Modified files:** `src/components/DownloadTable.tsx`, `src/components/Sidebar.tsx`, `src/components/Navbar.tsx`, `latest.json`, `docs/PROJECT_CONTEXT.md`.
+**Technical details:**
+- Changed `DownloadTable` from `table-auto` to `table-fixed w-full`, tightened fixed column widths, and removed `max-w-[225px]` on file path so long filenames/paths cleanly truncate inside the flexible `Dosya Adı` column without expanding the table beyond `942px` (or smaller panes).
+- Added responsive column breakpoints (`Hız` visible `md:`, `Kalan Süre` visible `lg:`), collapsible icon-rail sidebar below `md:` (`w-14 md:w-44 lg:w-52`), and `min-w-0` / `shrink-0` toolbar sizing in `Navbar`.
+**Database changes:** None.
+**Tests:**
+- `cmd /c "npx tsc --noEmit && npm run build"` -> exit code `0` (`vite` built 1607 modules in `4.80s`, `prepare-resources.cjs` OK).
+- `cmd /c "cd src-tauri && cargo build --release --bins --features custom-protocol"` -> exit code `0` (`2m 17s`).
+- Synced release binaries, rebuilt NSIS installer (`7,337,270` bytes), updated ZIPs and `latest.json` (`sha256: d4a36e47d5c1d7991cfb74bad422319e2c2edf5423912f8e266975900f572caf`). (Rust tests were not re-run for this UI-only change; last passed 31/31 prior to UI change).
+**Known issues:** None.

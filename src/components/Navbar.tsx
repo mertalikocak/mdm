@@ -30,71 +30,74 @@ export const Navbar: React.FC<Props> = ({
   activeCount,
 }) => {
   return (
-    <header className="h-12 px-4 border-b border-slate-300 dark:border-slate-700/80 bg-[#f5f6f8] dark:bg-[#1f242b] flex items-center justify-between gap-3 select-none shrink-0">
+    <header className="h-12 px-2.5 sm:px-4 border-b border-slate-300 dark:border-slate-700/80 bg-[#f5f6f8] dark:bg-[#1f242b] flex items-center justify-between gap-2 sm:gap-3 select-none shrink-0 min-w-0">
       {/* Left: Classic Desktop Toolbar Buttons */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
         <button
           onClick={onOpenAddModal}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0078d7] hover:bg-[#006abc] active:bg-[#005aa0] text-white font-medium text-xs transition-colors"
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded bg-[#0078d7] hover:bg-[#006abc] active:bg-[#005aa0] text-white font-medium text-xs transition-colors whitespace-nowrap"
         >
-          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+          <Plus className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
           <span>URL Ekle</span>
         </button>
 
-        <div className="h-5 w-px bg-slate-300 dark:bg-slate-700 mx-1" />
+        <div className="h-5 w-px bg-slate-300 dark:bg-slate-700 mx-0.5 sm:mx-1" />
 
         <button
           onClick={onResumeAll}
           title="Tüm İndirmeleri Başlat"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-700/70 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+          className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-700/70 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-colors whitespace-nowrap"
         >
-          <Play className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <Play className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span className="hidden lg:inline">Devam Et</span>
         </button>
 
         <button
           onClick={onPauseAll}
           title="Tüm İndirmeleri Duraklat"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-700/70 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+          className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-700/70 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-colors whitespace-nowrap"
         >
-          <Pause className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+          <Pause className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
           <span className="hidden lg:inline">Duraklat</span>
         </button>
 
         <button
           onClick={onClearCompleted}
           title="Tamamlananları Listeden Temizle"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-700/70 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+          className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-700/70 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-colors whitespace-nowrap"
         >
-          <Trash2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+          <Trash2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
           <span className="hidden lg:inline">Temizle</span>
         </button>
       </div>
 
       {/* Middle: Compact Search Box */}
-      <div className="relative flex-1 max-w-sm">
+      <div className="relative flex-1 min-w-[90px] max-w-sm">
         <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Dosya adı veya bağlantı ara..."
-          className="w-full pl-8 pr-3 py-1 text-xs rounded bg-white dark:bg-[#15181c] border border-slate-300 dark:border-slate-700 focus:border-[#0078d7] text-slate-800 dark:text-slate-200 placeholder-slate-400 outline-none"
+          className="w-full pl-8 pr-2.5 py-1 text-xs rounded bg-white dark:bg-[#15181c] border border-slate-300 dark:border-slate-700 focus:border-[#0078d7] text-slate-800 dark:text-slate-200 placeholder-slate-400 outline-none"
         />
       </div>
 
       {/* Right: Clean Tabular Speed & Active Counter */}
-      <div className="flex items-center gap-2.5 px-2.5 py-1 rounded bg-white dark:bg-[#15181c] border border-slate-300 dark:border-slate-700 text-xs tabular-nums">
+      <div className="flex items-center gap-2 sm:gap-2.5 px-2 sm:px-2.5 py-1 rounded bg-white dark:bg-[#15181c] border border-slate-300 dark:border-slate-700 text-xs tabular-nums shrink-0 whitespace-nowrap">
         <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
           <span
-            className={`inline-block w-2 h-2 rounded-full ${
+            className={`inline-block w-2 h-2 rounded-full shrink-0 ${
               activeCount > 0 ? 'bg-emerald-500' : 'bg-slate-400'
             }`}
           />
-          <span>{activeCount} aktif</span>
+          <span>
+            {activeCount}
+            <span className="hidden sm:inline"> aktif</span>
+          </span>
         </span>
         <span className="text-slate-300 dark:text-slate-600">|</span>
-        <span className="font-mono font-semibold text-slate-800 dark:text-slate-100 min-w-[74px] text-right">
+        <span className="font-mono font-semibold text-slate-800 dark:text-slate-100 min-w-[54px] sm:min-w-[74px] text-right">
           {formatSpeed(totalSpeed)}
         </span>
       </div>
