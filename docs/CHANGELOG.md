@@ -231,3 +231,16 @@
 **Database changes:** None.
 **Tests:** `cmd /c "node scripts/build_landing_page.cjs"` -> exit code `0`.
 **Known issues:** Requires `v0.1.0` GitHub Release assets to be published so `/releases/latest/download/...` resolves live.
+
+### [2026-11-16] - Calm, Compact, Scroll-Settled Video Grabber Button
+
+**Summary:** Redesigned the floating video grabber button so it is smaller, less visually glaring, and waits until scrolling stops or the user hovers before appearing on feed sites like Facebook.
+**Modified files:** `browser-extension/content.css`, `browser-extension/content.js`, `latest.json`, `docs/PROJECT_CONTEXT.md`.
+**Technical details:**
+- Replaced bright neon cyan/green styling and `16x16` icon badge in `content.css` with a compact dark translucent chip (`rgba(18, 20, 24, 0.72)`, `opacity: 0.78`, `13x13` muted icon, `"MDM İndir"` label, smooth `0.22s` fade-in via `.is-visible`, hidden `.mdm-grabber-quality-badge`).
+- Added scroll settle delay (`1200ms`), continuous viewport dwell delay (`1000ms`), and quick hover reveal (`250ms`) in `content.js`, tightened visibility filter (`>= 200x120` with >= 45% vertical overlap), and limited social feeds (`facebook.com`, `instagram.com`, `x.com`, `tiktok.com`, `reddit.com`) to at most one focused/hovered button at a time.
+**Database changes:** None.
+**Tests:**
+- `cmd /c "node --check browser-extension/content.js"` -> exit code `0`.
+- Synced extension files, rebuilt `mdm-browser-extension-v1.0.0.zip`, `mdm-portable-v0.1.0-x64.zip`, and NSIS installer (`makensis.exe /V2`), updated `latest.json` (`sha256: b2184b0123ac71e2514b5ab650a48d7c2fa2acbb803ab9a5bf31487fc528e2ce`).
+**Known issues:** Browser extensions loaded from unpacked folders must be reloaded (`chrome://extensions`) to pick up the updated `content.js` / `content.css`.

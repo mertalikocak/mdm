@@ -82,11 +82,13 @@ SQLite database initialized in `%LOCALAPPDATA%\mdm` (WAL mode):
 
 ## Session Handoff
 - **Completed this session**:
-  - Updated [scripts/build_landing_page.cjs](scripts/build_landing_page.cjs) and regenerated [mdm_tanitim.html](mdm_tanitim.html), `dist-installer/index.html`, and `drive-yuklenecekler/mdm_tanitim.html` with official GitHub Releases download links (`Mak.Download.Manager_0.1.0_x64-setup.exe`, `mdm-browser-extension-v1.0.0.zip`, `mdm-portable-v0.1.0-x64.zip`), header GitHub repo link, and footer Releases link.
-  - Prior this session: fixed browser startup history re-interception, single-instance Win32 mutex, `mdm_host.exe` IPC launch retry, and SQLite WAL `FULL` durability + startup reconciliation.
-- **Remaining/incomplete work**: Push updated landing page docs commit to `origin main`, then create/upload GitHub Release `v0.1.0` assets (`Mak.Download.Manager_0.1.0_x64-setup.exe`, `mdm-browser-extension-v1.0.0.zip`, `mdm-portable-v0.1.0-x64.zip`, `latest.json`).
-- **Current implementation status**: HTML landing pages regenerated and ready for push & Release publishing.
+  - Redesigned the browser extension's floating video grabber button (`browser-extension/content.css`, `browser-extension/content.js`) so scrolling feeds like Facebook no longer flash distracting, oversized bright buttons:
+    - Replaced bright neon cyan/green glow & large `16x16` icon badge with a compact, low-glare dark translucent chip (`rgba(18, 20, 24, 0.72)`, `opacity: 0.78`, `13x13` muted icon, `"MDM İndir"` label).
+    - Added scroll settle (`1200ms`) and continuous visibility dwell (`1000ms`) delays plus fast hover reveal (`250ms`), increased minimum video rect size (`200x120` with substantial viewport overlap), and limited feed pages (`facebook.com`, `instagram.com`, `x.com`, `tiktok.com`, `reddit.com`) to showing at most 1 centered/hovered panel at a time.
+  - Verified `node --check browser-extension/content.js` (exit 0), synced extension across local & distribution directories, rebuilt `mdm-browser-extension-v1.0.0.zip`, `mdm-portable-v0.1.0-x64.zip`, NSIS installer `Mak Download Manager_0.1.0_x64-setup.exe` (SHA-256 `b2184b0123ac71e2514b5ab650a48d7c2fa2acbb803ab9a5bf31487fc528e2ce`), and updated `latest.json`.
+- **Remaining/incomplete work**: Push updated commit to `origin main` and re-upload updated `v0.1.0` Release assets on GitHub.
+- **Current implementation status**: Extension UI/timing fix verified and packaged; committing & uploading to GitHub.
 - **Known errors or blockers**: None.
-- **Exact next recommended step**: Push to `main` and publish GitHub Release `v0.1.0`.
-- **Important files to inspect when continuing**: `scripts/build_landing_page.cjs`, `mdm_tanitim.html`, `latest.json`.
-- **Tests still to be executed**: Live verification of download buttons on GitHub Release `v0.1.0` once uploaded.
+- **Exact next recommended step**: Push to `main`, update `v0.1.0` Release assets, and reload the unpacked extension in Chrome/Brave.
+- **Important files to inspect when continuing**: `browser-extension/content.css`, `browser-extension/content.js`, `latest.json`.
+- **Tests still to be executed**: Live browsing test on Facebook feed / Reels to confirm calm, single-panel, non-intrusive reveal timing.

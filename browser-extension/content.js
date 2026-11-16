@@ -9,8 +9,39 @@
   "use strict";
 
   const ATTACHED_ATTR = "data-mdm-grabber-attached";
+  const DEFAULT_LABEL = "MDM İndir";
+  const VIDEO_DWELL_MS = 1000;
+  const FEED_SCROLL_SETTLE_MS = 1200;
+  const HOVER_REVEAL_MS = 250;
+
   let activeUrl = window.location.href;
   const activePanels = new Map(); // video -> panel element
+  const panelStates = new WeakMap(); // video -> { visibleSince, isHovered, hoverSince }
+  let lastScrollAt = 0;
+  let dwellRefreshTimer = null;
+
+  function isFeedPlatform() {
+    const h = window.location.hostname.toLowerCase();
+    return (
+      h.includes("facebook.com") ||
+      h.includes("instagram.com") ||
+      h.includes("twitter.com") ||
+      h.includes("x.com") ||
+      h.includes("tiktok.com") ||
+      h.includes("reddit.com")
+    );
+  }
+
+  function scheduleDwellRefresh(delayMs) {
+    const clamped = Math.max(80, Math.min(2000, delayMs));
+    if (dwellRefreshTimer) {
+      clearTimeout(dwellRefreshTimer);
+    }
+    dwellRefreshTimer = setTimeout(() => {
+      dwellRefreshTimer = null;
+      updateAllPanelPositions();
+    }, clamped);
+  }
 
   // SVG Icons
   const PLAY_ARROW_SVG = `
@@ -319,17 +350,43 @@
     return null;
   }
 
+  function getTargetRect(video) {
+    let targetEl = video;
+    if (window.location.hostname.includes("youtube.com")) {
+      const ytPlayer = document.querySelector("#movie_player") || document.querySelector(".html5-video-player");
+      if (ytPlayer && (ytPlayer.contains(video) || !document.contains(video))) targetEl = ytPlayer;
+    }
+    return targetEl.getBoundingClientRect();
+  }
+
+  function isRectSubstantiallyVisible(rect) {
+    if (rect.width < 200 || rect.height < 120) return false;
+    if (rect.right <= 40 || rect.left >= window.innerWidth - 20) return false;
+    const visibleTop = Math.max(rect.top, 0);
+    const visibleBottom = Math.min(rect.bottom, window.innerHeight);
+    const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+    const minRequired = Math.min(rect.height * 0.45, 110);
+    return visibleHeight >= minRequired;
+  }
+
   /**
-   * Updates panel position anchored directly on the top-right corner inside the video player (IDM Style)
+   * Updates panel position anchored directly on the top-right corner inside the video player
    */
-  function updatePanelPosition(video, panel) {
+  function updatePanelPosition(video, panel, allowDisplay = true) {
     if (!video || !panel || !video.isConnected || video.getAttribute("data-mdm-dismissed") === "true") {
       if (panel) {
+        panel.classList.remove("is-visible");
         panel.style.display = "none";
         panel.remove();
       }
       activePanels.delete(video);
       return;
+    }
+
+    let state = panelStates.get(video);
+    if (!state) {
+      state = { visibleSince: 0, isHovered: false, hoverSince: 0 };
+      panelStates.set(video, state);
     }
 
     // Fullscreen handling
@@ -338,43 +395,67 @@
       panel.style.right = "18px";
       panel.style.left = "auto";
       panel.style.display = "inline-flex";
+      panel.classList.add("is-visible");
       return;
     }
 
-    // Find the player's bounding rect
-    let targetEl = video;
-    if (window.location.hostname.includes("youtube.com")) {
-      const ytPlayer = document.querySelector("#movie_player") || document.querySelector(".html5-video-player");
-      if (ytPlayer && (ytPlayer.contains(video) || !document.contains(video))) targetEl = ytPlayer;
-    }
+    const rect = getTargetRect(video);
 
-    const rect = targetEl.getBoundingClientRect();
-
-    // Hide if out of viewport, hidden, or too small
-    if (
-      rect.width < 140 ||
-      rect.height < 90 ||
-      rect.bottom <= 40 ||
-      rect.top >= window.innerHeight - 20
-    ) {
+    // Hide if out of viewport, hidden, too small, or suppressed on multi-video feed
+    if (!allowDisplay || !isRectSubstantiallyVisible(rect)) {
+      state.visibleSince = 0;
+      panel.classList.remove("is-visible");
       panel.style.display = "none";
       return;
     }
 
-    panel.style.display = "inline-flex";
+    const now = Date.now();
+    const isAnalyzing = panel.classList.contains("is-analyzing");
+    const panelHovered = panel.matches(":hover");
 
-    // Dock inside top-right corner of the video player (IDM standard)
+    if (!isAnalyzing && !panelHovered) {
+      const feedMode = isFeedPlatform();
+      if (feedMode && !state.isHovered && now - lastScrollAt < 350) {
+        panel.classList.remove("is-visible");
+        panel.style.display = "none";
+        scheduleDwellRefresh(FEED_SCROLL_SETTLE_MS);
+        return;
+      }
+
+      if (!state.visibleSince) {
+        state.visibleSince = now;
+      }
+
+      const dwellElapsed = now - state.visibleSince;
+      const scrollElapsed = now - lastScrollAt;
+      const requiredScrollWait = feedMode ? FEED_SCROLL_SETTLE_MS : 350;
+      const hoverReady = state.isHovered && state.hoverSince > 0 && now - state.hoverSince >= HOVER_REVEAL_MS;
+      const dwellReady = dwellElapsed >= VIDEO_DWELL_MS && scrollElapsed >= requiredScrollWait;
+
+      if (!hoverReady && !dwellReady) {
+        panel.style.display = "inline-flex";
+        panel.classList.remove("is-visible");
+        const remainingDwell = Math.max(0, VIDEO_DWELL_MS - dwellElapsed);
+        const remainingScroll = Math.max(0, requiredScrollWait - scrollElapsed);
+        const remainingHover = state.isHovered && state.hoverSince > 0 ? Math.max(0, HOVER_REVEAL_MS - (now - state.hoverSince)) : Infinity;
+        const nextWait = Math.min(Math.max(remainingDwell, remainingScroll), remainingHover);
+        scheduleDwellRefresh(nextWait + 25);
+        return;
+      }
+    }
+
+    // Dock inside top-right corner of the video player
     let top = rect.top + 8;
-    // If player top scrolled offscreen, keep pinned inside visible portion
     if (top < 10) {
       top = 10;
     }
-
     const right = Math.max(8, window.innerWidth - rect.right + 8);
 
     panel.style.top = `${top}px`;
     panel.style.right = `${right}px`;
     panel.style.left = "auto";
+    panel.style.display = "inline-flex";
+    panel.classList.add("is-visible");
 
     if (rect.width < 420) {
       panel.classList.add("is-compact");
@@ -399,7 +480,7 @@
     // Text Label
     const textLabel = document.createElement("span");
     textLabel.className = "mdm-grabber-label";
-    textLabel.textContent = "Bu video dosyasını indir";
+    textLabel.textContent = DEFAULT_LABEL;
 
     // Quality Badge (e.g. MDM)
     const qualityBadge = document.createElement("span");
@@ -493,10 +574,10 @@
       }
 
       if (!verifiedUrl) {
-        textLabel.textContent = "Video Akışı Bekleniyor...";
+        textLabel.textContent = "Akış Bekleniyor...";
         setTimeout(() => {
           iconContainer.innerHTML = PLAY_ARROW_SVG;
-          textLabel.textContent = "Bu video dosyasını indir";
+          textLabel.textContent = DEFAULT_LABEL;
           panel.classList.remove("is-analyzing");
         }, 2000);
         return;
@@ -516,10 +597,10 @@
           (response) => {
             if (chrome.runtime.lastError) {
               console.warn("[MDM] SendMessage runtime error:", chrome.runtime.lastError.message);
-              textLabel.textContent = "Sayfayı Yenileyin (F5)";
+              textLabel.textContent = "Yenileyin (F5)";
               setTimeout(() => {
                 iconContainer.innerHTML = PLAY_ARROW_SVG;
-                textLabel.textContent = "Bu video dosyasını indir";
+                textLabel.textContent = DEFAULT_LABEL;
                 panel.classList.remove("is-analyzing");
               }, 3000);
               return;
@@ -527,17 +608,17 @@
 
             setTimeout(() => {
               iconContainer.innerHTML = PLAY_ARROW_SVG;
-              textLabel.textContent = "Bu video dosyasını indir";
+              textLabel.textContent = DEFAULT_LABEL;
               panel.classList.remove("is-analyzing");
             }, 2500);
           }
         );
       } catch (err) {
         console.warn("[MDM] SendMessage failed:", err);
-        textLabel.textContent = "Sayfayı Yenileyin (F5)";
+        textLabel.textContent = "Yenileyin (F5)";
         setTimeout(() => {
           iconContainer.innerHTML = PLAY_ARROW_SVG;
-          textLabel.textContent = "Bu video dosyasını indir";
+          textLabel.textContent = DEFAULT_LABEL;
           panel.classList.remove("is-analyzing");
         }, 3000);
       }
@@ -558,12 +639,22 @@
     const panel = createGrabberPanel(video);
     document.body.appendChild(panel);
     activePanels.set(video, panel);
+    panelStates.set(video, { visibleSince: 0, isHovered: false, hoverSince: 0 });
 
-    // Initial position
-    updatePanelPosition(video, panel);
+    // Initial evaluation (respects dwell / scroll settle delay)
+    updateAllPanelPositions();
 
     const refresh = () => {
-      updatePanelPosition(video, panel);
+      updateAllPanelPositions();
+    };
+
+    const setHover = (hovered) => {
+      const st = panelStates.get(video);
+      if (st) {
+        st.isHovered = hovered;
+        st.hoverSince = hovered ? st.hoverSince || Date.now() : 0;
+      }
+      updateAllPanelPositions();
     };
 
     video.addEventListener("play", refresh);
@@ -573,10 +664,11 @@
     video.addEventListener("loadeddata", refresh);
     video.addEventListener("canplay", refresh);
     video.addEventListener("timeupdate", refresh);
-    video.addEventListener("mouseenter", refresh);
+    video.addEventListener("mouseenter", () => setHover(true));
+    video.addEventListener("mouseleave", () => setHover(false));
     video.addEventListener("click", () => {
-      setTimeout(refresh, 100);
-      setTimeout(refresh, 500);
+      setTimeout(refresh, 150);
+      setTimeout(refresh, 550);
     });
 
     const container =
@@ -584,11 +676,11 @@
       video.parentElement;
 
     if (container) {
-      container.addEventListener("mouseenter", refresh);
-      container.addEventListener("mousemove", refresh, { passive: true });
+      container.addEventListener("mouseenter", () => setHover(true));
+      container.addEventListener("mouseleave", () => setHover(false));
       container.addEventListener("click", () => {
-        setTimeout(refresh, 100);
-        setTimeout(refresh, 500);
+        setTimeout(refresh, 150);
+        setTimeout(refresh, 550);
       });
     }
   }
@@ -597,12 +689,42 @@
    * Repositions all active panels (called on scroll, resize, layout shift)
    */
   function updateAllPanelPositions() {
+    let primaryFeedVideo = null;
+    const feedMode = isFeedPlatform() && !document.fullscreenElement;
+
+    if (feedMode) {
+      const viewportMid = window.innerHeight / 2;
+      let bestScore = Infinity;
+
+      activePanels.forEach((panel, video) => {
+        if (!video.isConnected || video.getAttribute("data-mdm-dismissed") === "true") return;
+        const rect = getTargetRect(video);
+        if (!isRectSubstantiallyVisible(rect)) return;
+
+        const st = panelStates.get(video);
+        const hovered = (st && st.isHovered) || panel.matches(":hover");
+        if (hovered) {
+          primaryFeedVideo = video;
+          bestScore = -1;
+          return;
+        }
+
+        const mid = (rect.top + rect.bottom) / 2;
+        const dist = Math.abs(mid - viewportMid);
+        if (dist < bestScore) {
+          bestScore = dist;
+          primaryFeedVideo = video;
+        }
+      });
+    }
+
     activePanels.forEach((panel, video) => {
       if (!video.isConnected) {
         panel.remove();
         activePanels.delete(video);
       } else {
-        updatePanelPosition(video, panel);
+        const allowDisplay = !feedMode || video === primaryFeedVideo;
+        updatePanelPosition(video, panel, allowDisplay);
       }
     });
   }
@@ -626,7 +748,15 @@
   }
 
   // Smooth position tracking on scroll and window resize (capture: true catches modal scrolls)
-  window.addEventListener("scroll", updateAllPanelPositions, { capture: true, passive: true });
+  window.addEventListener(
+    "scroll",
+    () => {
+      lastScrollAt = Date.now();
+      updateAllPanelPositions();
+      scheduleDwellRefresh(FEED_SCROLL_SETTLE_MS + 30);
+    },
+    { capture: true, passive: true }
+  );
   window.addEventListener("resize", updateAllPanelPositions, { passive: true });
   document.addEventListener("fullscreenchange", updateAllPanelPositions);
 

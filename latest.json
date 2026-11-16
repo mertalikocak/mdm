@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
-  "notes": "Mak Download Manager v0.1.0: Tarayıcı açılışında geçmiş indirmelerin yeniden yakalanmasını önleme, tekil uygulama kilidi (tek tepsi ikonu), IPC yeniden deneme, SQLite WAL FULL dayanıklılık + reset sonrası silinen/tamamlanan görev koruması, yt-dlp + FFmpeg otomatik kurulumu, duyarlı tablo düzeni ve GitHub Releases otomatik güncelleyici.",
+  "notes": "Mak Download Manager v0.1.0: Akış/video sitelerinde sakinleştirilmiş, küçük ve göz yormayan MDM İndir video butonu (kaydırma bekleme süresi + tek aktif feed videosu), tarayıcı açılışında geçmiş filtrelemesi, tekil uygulama kilidi, SQLite WAL FULL dayanıklılık, otomatik yt-dlp + FFmpeg kurulumu, duyarlı tablo düzeni ve GitHub Releases otomatik güncelleyici.",
   "setup_url": "https://github.com/mertalikocak/mdm/releases/latest/download/Mak.Download.Manager_0.1.0_x64-setup.exe",
-  "sha256": "90c559f80b9a3be172952dd58c499439ddf922f0cabd9f2e496d0f878a7dde3b",
-  "published_at": "2026-11-16T12:53:17Z"
+  "sha256": "b2184b0123ac71e2514b5ab650a48d7c2fa2acbb803ab9a5bf31487fc528e2ce",
+  "published_at": "2026-11-16T18:53:06Z"
 }
