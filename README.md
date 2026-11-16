@@ -43,7 +43,7 @@
 3. **Paketlenmemiş öğe yükle (Load unpacked)** butonuna tıklayın.
 4. Kurulum dizinindeki `%LOCALAPPDATA%\Mak Download Manager\resources\browser-extension` klasörünü (veya kaynak koddaki `browser-extension/` klasörünü) seçin.
 
-> **Video İndirme Desteği:** Video ve HLS/DASH yayınlarını indirmek ve birleştirmek için sisteminizde `yt-dlp` ve `ffmpeg` araçlarının kurulu olması gerekir. **Ayarlar** penceresinden `yt-dlp` aracını doğrudan güncelleyebilirsiniz.
+> **Video İndirme Desteği (Sıfır Kurulum):** `yt-dlp` ve `FFmpeg` araçları MDM ilk açılışta (ve ihtiyaç duyulan anda) arka planda sessizce `%LOCALAPPDATA%\mdm\bin` dizinine otomatik kurulur; kullanıcının ayrıca kurulum yapması gerekmez. İstediğiniz zaman **Ayarlar** penceresinden `yt-dlp` sürümünü tek tıkla güncelleyebilirsiniz.
 
 ---
 

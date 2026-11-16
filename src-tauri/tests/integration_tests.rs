@@ -1742,8 +1742,33 @@ async fn test_native_messaging_queue_integration_and_security() {
     let _ = std::fs::remove_file(&temp_db_path);
 }
 
+#[tokio::test]
+async fn test_video_manager_ensure_tools_and_scheme_validation() {
+    let temp_root = std::env::temp_dir().join(format!("mdm_vm_tools_{}", uuid::Uuid::new_v4()));
+    let bin_dir = temp_root.join("bin");
+    std::fs::create_dir_all(&bin_dir).unwrap();
+    let db_path = temp_root.join("vm_tools.db");
+    let db = Arc::new(Database::new(db_path).unwrap());
 
+    // Place local dummy binaries so ensure_* resolves locally without network calls
+    let dummy_ytdlp = bin_dir.join("yt-dlp.exe");
+    let dummy_ffmpeg = bin_dir.join("ffmpeg.exe");
+    std::fs::write(&dummy_ytdlp, b"stub").unwrap();
+    std::fs::write(&dummy_ffmpeg, b"stub").unwrap();
 
+    let vm = mdm_lib::video::VideoManager::new(db, bin_dir.clone());
 
+    assert_eq!(vm.ensure_ytdlp().await.unwrap(), dummy_ytdlp);
+    assert_eq!(vm.ensure_ffmpeg().await.unwrap(), dummy_ffmpeg);
 
+    let bad_scheme = vm
+        .analyze_video_with_headers("ftp://example.com/video.mp4", None, None, None, None)
+        .await;
+    assert_eq!(
+        bad_scheme.unwrap_err(),
+        "Yalnızca HTTP ve HTTPS video bağlantıları desteklenir."
+    );
+
+    let _ = std::fs::remove_dir_all(&temp_root);
+}
 

@@ -188,15 +188,16 @@ pub async fn probe_video_info(
     user_agent: Option<String>,
     fallback_title: Option<String>,
 ) -> Result<crate::video::VideoAnalysisResult, String> {
-    crate::video::analyze_video_url_with_headers(
-        state.video_engine.get_bin_dir(),
-        &url,
-        cookies.as_deref(),
-        referrer.as_deref(),
-        user_agent.as_deref(),
-        fallback_title.as_deref(),
-    )
-    .await
+    state
+        .video_engine
+        .analyze_video_with_headers(
+            &url,
+            cookies.as_deref(),
+            referrer.as_deref(),
+            user_agent.as_deref(),
+            fallback_title.as_deref(),
+        )
+        .await
 }
 
 #[tauri::command]

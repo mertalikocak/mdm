@@ -82,12 +82,12 @@ SQLite database initialized in `%LOCALAPPDATA%\mdm` (WAL mode):
 
 ## Session Handoff
 - **Completed this session**:
-  - Implemented **GitHub Releases Auto-Updater (Approach 1)**: created `src-tauri/src/updater.rs` (`check_app_update`, `download_and_install_update` with `latest.json` + GitHub API fallback, live `"app-update-progress"` events, SHA-256 verification, and detached silent NSIS `/S` apply + relaunch script), registered `check_app_update` / `install_app_update` IPC commands in `commands.rs` and `lib.rs` (plus 4s delayed startup check emitting `"app-update-available"`), and added update banner + Settings update card (`AppUpdateInfo`, `App.tsx`, `SettingsModal.tsx`, `src/types/download.ts`).
-  - Added `.gitignore`, repository `README.md` (with `docs/screenshots/*.png`, setup, extension, build & release guides), and generated `latest.json` with SHA-256 `7caa925cf1abd002954f1f532f67d082f28cf8351400cbadcabc7b88bca67df7`.
-  - Verified frontend build (`npx tsc --noEmit && npm run build`), Rust integration tests (`cargo test`: 30 passed / 0 failed), and `cargo build --release --bins --features custom-protocol`; synced binaries across local app paths and rebuilt NSIS installer `Mak Download Manager_0.1.0_x64-setup.exe` plus ZIP archives in `dist-installer/` and `drive-yuklenecekler/`.
-- **Remaining/incomplete work**: Git initialization & push to `https://github.com/mertalikocak/mdm.git`; user creating GitHub Release `v0.1.0` with `Mak Download Manager_0.1.0_x64-setup.exe` and `latest.json` attached.
-- **Current implementation status**: Auto-updater backend/UI, documentation, and v0.1.0 installer artifacts are built and ready; preparing Git commit & push.
-- **Known errors or blockers**: None at build time.
-- **Exact next recommended step**: Push repository to `https://github.com/mertalikocak/mdm.git` and create GitHub Release `v0.1.0` uploading the setup `.exe` and `latest.json`.
-- **Important files to inspect when continuing**: `src-tauri/src/updater.rs`, `src/components/SettingsModal.tsx`, `src/App.tsx`, `latest.json`, `README.md`.
-- **Tests still to be executed**: Live end-to-end auto-update verification against a published `v0.1.0` -> `v0.1.1` GitHub Release.
+  - Added zero-setup automatic `yt-dlp` + `FFmpeg` provisioning (`src-tauri/src/video/manager.rs`, `commands.rs`, `lib.rs`, `src/components/SettingsModal.tsx`, `README.md`): `VideoManager::ensure_all_tools()` runs asynchronously on app startup to download missing `yt-dlp.exe` and `ffmpeg.exe`/`ffprobe.exe` into `%LOCALAPPDATA%\mdm\bin` without inflating the ~7.3 MB installer; `VideoManager::analyze_video_with_headers()` (`probe_video_info`) and `start_video_download()` also auto-provision under `ytdlp_install_lock`/`ffmpeg_install_lock` if needed, emitting `"video-tools-updated"` so `SettingsModal` updates live.
+  - Added integration test `test_video_manager_ensure_tools_and_scheme_validation` in `src-tauri/tests/integration_tests.rs`.
+  - Verified `npx tsc --noEmit && npm run build` (exit 0, `4.97s`), `cargo test` (`31 passed, 0 failed` in `4.10s`), `cargo build --release --bins --features custom-protocol` (`1m 52s`), rebuilt NSIS installer `Mak Download Manager_0.1.0_x64-setup.exe` (`7,337,060` bytes, SHA-256 `8e637b89d41d7a79af1624602c4c0447473dfc22c12bd2e87ad289f98ddfd19e`), and updated `latest.json` + distribution archives.
+- **Remaining/incomplete work**: Push updated commit to `https://github.com/mertalikocak/mdm.git`; user publishing GitHub Release `v0.1.0` with `Mak Download Manager_0.1.0_x64-setup.exe` and `latest.json`.
+- **Current implementation status**: All code, tests, binaries, NSIS setup, and docs are updated and verified.
+- **Known errors or blockers**: None.
+- **Exact next recommended step**: Push to GitHub `main` and create Release `v0.1.0` uploading `Mak Download Manager_0.1.0_x64-setup.exe` and `latest.json`.
+- **Important files to inspect when continuing**: `src-tauri/src/video/manager.rs`, `src-tauri/src/video/binaries.rs`, `src-tauri/src/lib.rs`, `src/components/SettingsModal.tsx`.
+- **Tests still to be executed**: Live end-to-end test on a clean Windows environment without pre-existing `%LOCALAPPDATA%\mdm\bin`.

@@ -174,3 +174,19 @@
 - `cmd /c "cd src-tauri && cargo test && cargo build --release --bins --features custom-protocol"` -> exit code `0` (`tests\integration_tests.rs`: 30 passed, 0 failed in `4.09s`; release compiled in `1m 52s`).
 - Synced binaries, rebuilt NSIS installer via `makensis.exe /V2` (`7,348,473` bytes), updated ZIPs in `dist-installer/` and `drive-yuklenecekler/`, and computed SHA-256 (`7caa925cf1abd002954f1f532f67d082f28cf8351400cbadcabc7b88bca67df7`) via `certutil`.
 **Known issues:** Live update download/apply requires publishing the `v0.1.0` Release (and a subsequent newer tag such as `v0.1.1`) on GitHub.
+
+### [2026-11-16] - Automatic Startup & On-Demand Provisioning for yt-dlp and FFmpeg
+
+**Summary:** Removed manual setup friction for video downloads by automatically installing `yt-dlp` and `FFmpeg` in the background on startup and on-demand during video analysis or download while keeping the NSIS installer lightweight (~7.3 MB).
+**Modified files:** `src-tauri/src/video/manager.rs`, `src-tauri/src/commands.rs`, `src-tauri/src/lib.rs`, `src-tauri/tests/integration_tests.rs`, `src/components/SettingsModal.tsx`, `README.md`, `latest.json`, `docs/PROJECT_CONTEXT.md`.
+**Technical details:**
+- Added `ytdlp_install_lock`, `ensure_ytdlp_with_lock`, `ensure_ffmpeg_with_lock`, `ensure_all_tools`, and `analyze_video_with_headers` on `VideoManager` (`src-tauri/src/video/manager.rs`) with `User-Agent` and a 300s download timeout.
+- Updated `probe_video_info` (`commands.rs`) to invoke `VideoManager::analyze_video_with_headers` so video probing auto-provisions `yt-dlp.exe` if needed, while keeping `analyzer::analyze_video_url` pure for unit tests.
+- Updated `start_video_download` (`video/manager.rs`) to provision both `yt-dlp` and `FFmpeg` safely under mutexes before invoking `execute_video_download`.
+- Spawned `video_startup.ensure_all_tools()` in `lib.rs` on app startup and added live `"video-tools-updated"` listener + updated status text in `src/components/SettingsModal.tsx`.
+**Database changes:** None.
+**Tests:**
+- `cmd /c "npx tsc --noEmit && npm run build"` -> exit code `0` (`vite` built 1607 modules in `4.97s`, `prepare-resources.cjs` OK).
+- `cmd /c "cd src-tauri && cargo test && cargo build --release --bins --features custom-protocol"` -> exit code `0` (`tests\integration_tests.rs`: 31 passed, 0 failed in `4.10s`; release compiled in `1m 52s`).
+- Synced binaries, rebuilt NSIS installer via `makensis.exe /V2` (`7,337,060` bytes), updated ZIPs and `latest.json` (`sha256: 8e637b89d41d7a79af1624602c4c0447473dfc22c12bd2e87ad289f98ddfd19e`).
+**Known issues:** Requires internet access on first run or first video request if `%LOCALAPPDATA%\mdm\bin` is empty.

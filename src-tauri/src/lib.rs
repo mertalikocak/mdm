@@ -77,6 +77,12 @@ pub fn run() {
             engine_startup.process_queue().await;
         });
 
+        // Background auto-provisioning of yt-dlp and FFmpeg on first launch
+        let video_startup = Arc::clone(&video_engine_arc);
+        tauri::async_runtime::spawn(async move {
+            video_startup.ensure_all_tools().await;
+        });
+
         // Background GitHub release update check on startup
         let update_app_handle = app_handle.clone();
         tauri::async_runtime::spawn(async move {

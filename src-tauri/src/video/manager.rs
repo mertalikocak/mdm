@@ -1,7 +1,7 @@
 use crate::db::Database;
 use crate::engine::probe::{get_collision_free_path, sanitize_filename};
 use crate::engine::task::{DownloadStatus, DownloadTask};
-use crate::video::binaries::{find_ffmpeg, install_ffmpeg, install_or_update_ytdlp};
+use crate::video::binaries::{find_ffmpeg, find_yt_dlp, install_ffmpeg, install_or_update_ytdlp};
 use crate::video::downloader::{execute_video_download, VideoDownloadParams};
 use chrono::Utc;
 use reqwest::Client;
@@ -74,13 +74,55 @@ pub struct VideoManager {
     client: Client,
     progress_emitter: Option<ProgressEmitter>,
     active_tasks: Arc<RwLock<HashMap<String, ActiveVideoTask>>>,
+    ytdlp_install_lock: Arc<Mutex<()>>,
     ffmpeg_install_lock: Arc<Mutex<()>>,
+}
+
+async fn ensure_ytdlp_with_lock(
+    bin_dir: &Path,
+    client: &Client,
+    lock: &Mutex<()>,
+    emitter: Option<&ProgressEmitter>,
+) -> Result<PathBuf, String> {
+    if let Some(path) = find_yt_dlp(bin_dir) {
+        return Ok(path);
+    }
+    let _guard = lock.lock().await;
+    if let Some(path) = find_yt_dlp(bin_dir) {
+        return Ok(path);
+    }
+    install_or_update_ytdlp(bin_dir, client).await?;
+    if let Some(em) = emitter {
+        em("video-tools-updated", serde_json::json!({ "tool": "yt-dlp" }));
+    }
+    find_yt_dlp(bin_dir).ok_or_else(|| "yt-dlp kuruldu ancak ikili dosya bulunamadı.".to_string())
+}
+
+async fn ensure_ffmpeg_with_lock(
+    bin_dir: &Path,
+    lock: &Mutex<()>,
+    emitter: Option<&ProgressEmitter>,
+) -> Result<PathBuf, String> {
+    if let Some(path) = find_ffmpeg(bin_dir) {
+        return Ok(path);
+    }
+    let _guard = lock.lock().await;
+    if let Some(path) = find_ffmpeg(bin_dir) {
+        return Ok(path);
+    }
+    let installed = install_ffmpeg(bin_dir).await?;
+    if let Some(em) = emitter {
+        em("video-tools-updated", serde_json::json!({ "tool": "ffmpeg" }));
+    }
+    Ok(installed)
 }
 
 impl VideoManager {
     pub fn new(db: Arc<Database>, bin_dir: PathBuf) -> Self {
         let client = Client::builder()
-            .timeout(std::time::Duration::from_secs(30))
+            .user_agent("MakDownloadManager/1.0")
+            .connect_timeout(std::time::Duration::from_secs(30))
+            .timeout(std::time::Duration::from_secs(300))
             .build()
             .unwrap_or_default();
 
@@ -90,6 +132,7 @@ impl VideoManager {
             client,
             progress_emitter: None,
             active_tasks: Arc::new(RwLock::new(HashMap::new())),
+            ytdlp_install_lock: Arc::new(Mutex::new(())),
             ffmpeg_install_lock: Arc::new(Mutex::new(())),
         }
     }
@@ -102,8 +145,62 @@ impl VideoManager {
         &self.bin_dir
     }
 
+    pub async fn ensure_ytdlp(&self) -> Result<PathBuf, String> {
+        ensure_ytdlp_with_lock(
+            &self.bin_dir,
+            &self.client,
+            &self.ytdlp_install_lock,
+            self.progress_emitter.as_ref(),
+        )
+        .await
+    }
+
+    pub async fn ensure_ffmpeg(&self) -> Result<PathBuf, String> {
+        ensure_ffmpeg_with_lock(
+            &self.bin_dir,
+            &self.ffmpeg_install_lock,
+            self.progress_emitter.as_ref(),
+        )
+        .await
+    }
+
+    pub async fn ensure_all_tools(&self) {
+        let _ = self.ensure_ytdlp().await;
+        let _ = self.ensure_ffmpeg().await;
+    }
+
+    pub async fn analyze_video_with_headers(
+        &self,
+        url: &str,
+        cookies: Option<&str>,
+        referrer: Option<&str>,
+        user_agent: Option<&str>,
+        fallback_title: Option<&str>,
+    ) -> Result<crate::video::VideoAnalysisResult, String> {
+        let parsed_url = url::Url::parse(url).map_err(|_| "Geçersiz web adresi.".to_string())?;
+        if parsed_url.scheme() != "http" && parsed_url.scheme() != "https" {
+            return Err("Yalnızca HTTP ve HTTPS video bağlantıları desteklenir.".to_string());
+        }
+
+        self.ensure_ytdlp().await?;
+        crate::video::analyze_video_url_with_headers(
+            &self.bin_dir,
+            url,
+            cookies,
+            referrer,
+            user_agent,
+            fallback_title,
+        )
+        .await
+    }
+
     pub async fn install_ytdlp(&self) -> Result<String, String> {
-        install_or_update_ytdlp(&self.bin_dir, &self.client).await
+        let _guard = self.ytdlp_install_lock.lock().await;
+        let version = install_or_update_ytdlp(&self.bin_dir, &self.client).await?;
+        if let Some(emitter) = &self.progress_emitter {
+            emitter("video-tools-updated", serde_json::json!({ "tool": "yt-dlp" }));
+        }
+        Ok(version)
     }
 
     pub async fn is_task_active(&self, id: &str) -> bool {
@@ -234,17 +331,26 @@ impl VideoManager {
         let task_cookies = task.cookies.clone();
         let task_referrer = task.referrer.clone();
         let task_user_agent = task.user_agent.clone();
+        let client = self.client.clone();
+        let ytdlp_lock = Arc::clone(&self.ytdlp_install_lock);
         let ffmpeg_lock = Arc::clone(&self.ffmpeg_install_lock);
 
         tokio::spawn(async move {
-            // FFmpeg is required to merge YouTube's separate video/audio streams into one file
-            let ffmpeg_result = {
-                let _guard = ffmpeg_lock.lock().await;
-                if find_ffmpeg(&bin_dir).is_some() {
-                    Ok(())
-                } else {
-                    install_ffmpeg(&bin_dir).await.map(|_| ())
-                }
+            // Ensure yt-dlp and FFmpeg are provisioned without requiring manual setup
+            let ytdlp_result = ensure_ytdlp_with_lock(
+                &bin_dir,
+                &client,
+                &ytdlp_lock,
+                progress_emitter.as_ref(),
+            )
+            .await;
+
+            let ffmpeg_result = if ytdlp_result.is_ok() {
+                ensure_ffmpeg_with_lock(&bin_dir, &ffmpeg_lock, progress_emitter.as_ref())
+                    .await
+                    .map(|_| ())
+            } else {
+                Ok(())
             };
 
             let p_task_id = task_id.clone();
@@ -439,17 +545,24 @@ impl VideoManager {
                 user_agent: task_user_agent.as_deref(),
             };
 
-            let result = match ffmpeg_result {
-                Err(e) => Err(format!("FFmpeg kurulamadı (ses/görüntü birleştirme için gerekli): {}", e)),
-                Ok(()) => {
-                    execute_video_download(
-                        params,
-                        Some(progress_cb),
-                        cancel_rx,
-                        is_paused,
-                    )
-                    .await
-                }
+            let result = if let Err(e) = ytdlp_result {
+                Err(format!("yt-dlp kurulamadı: {}", e))
+            } else if let Err(e) = ffmpeg_result {
+                Err(format!("FFmpeg kurulamadı (ses/görüntü birleştirme için gerekli): {}", e))
+            } else if *cancel_rx.borrow() {
+                Err(if is_paused.load(Ordering::SeqCst) {
+                    "cancelled:paused".to_string()
+                } else {
+                    "cancelled".to_string()
+                })
+            } else {
+                execute_video_download(
+                    params,
+                    Some(progress_cb),
+                    cancel_rx,
+                    is_paused,
+                )
+                .await
             };
 
             // Remove from active tasks map

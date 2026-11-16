@@ -62,21 +62,28 @@ export const SettingsModal: React.FC<Props> = ({
 
   useEffect(() => {
     if (!isOpen || !isTauri) return;
-    let unlisten: (() => void) | undefined;
+    let unlistenUpdate: (() => void) | undefined;
+    let unlistenTools: (() => void) | undefined;
     (async () => {
       try {
         const { listen } = await import('@tauri-apps/api/event');
-        unlisten = await listen<{ percent?: number }>('app-update-progress', (ev) => {
+        unlistenUpdate = await listen<{ percent?: number }>('app-update-progress', (ev) => {
           if (typeof ev.payload?.percent === 'number') {
             setUpdateProgressPct(Math.min(100, Math.max(0, ev.payload.percent)));
+          }
+        });
+        unlistenTools = await listen('video-tools-updated', () => {
+          if (onGetToolStatus) {
+            onGetToolStatus().then(setToolStatus).catch(console.error);
           }
         });
       } catch {}
     })();
     return () => {
-      if (unlisten) unlisten();
+      if (unlistenUpdate) unlistenUpdate();
+      if (unlistenTools) unlistenTools();
     };
-  }, [isOpen]);
+  }, [isOpen, onGetToolStatus]);
 
   if (!isOpen) return null;
 
@@ -321,7 +328,9 @@ export const SettingsModal: React.FC<Props> = ({
                   )}
                 </div>
                 <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                  {toolStatus?.ytdlp_version ? `Sürüm: ${toolStatus.ytdlp_version}` : 'Bulunamadı'}
+                  {toolStatus?.ytdlp_version
+                    ? `Sürüm: ${toolStatus.ytdlp_version}`
+                    : 'Arka planda otomatik kurulur'}
                 </p>
               </div>
 
@@ -334,12 +343,14 @@ export const SettingsModal: React.FC<Props> = ({
                     </span>
                   ) : (
                     <span className="text-slate-500 dark:text-slate-400 font-medium">
-                      Bulunamadı
+                      Hazırlanıyor
                     </span>
                   )}
                 </div>
                 <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                  {toolStatus?.ffmpeg_installed ? 'Video/ses birleştirme hazır' : 'Gerekli araç'}
+                  {toolStatus?.ffmpeg_installed
+                    ? 'Video/ses birleştirme hazır'
+                    : 'Arka planda otomatik kurulur'}
                 </p>
               </div>
             </div>
