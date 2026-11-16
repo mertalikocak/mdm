@@ -17,7 +17,7 @@ impl Database {
         let conn = Connection::open(path)?;
 
         // Enable Write-Ahead Logging and busy timeout for safe concurrent read/write across multiple processes
-        conn.execute_batch("PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA busy_timeout = 5000;")?;
+        conn.execute_batch("PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL; PRAGMA busy_timeout = 5000;")?;
         conn.execute_batch(CREATE_DOWNLOADS_TABLE)?;
         conn.execute_batch(CREATE_SETTINGS_TABLE)?;
 
@@ -73,6 +73,30 @@ impl Database {
         for mut task in tasks {
             if task.status == DownloadStatus::Downloading || task.status == DownloadStatus::Probing {
                 let dest = &task.destination_path;
+                let has_part0 = std::path::Path::new(&format!("{}.part0", dest)).exists();
+                let has_mdmpart = std::path::Path::new(&format!("{}.mdmpart", dest)).exists();
+                if let Ok(meta) = std::fs::metadata(dest) {
+                    if meta.len() > 0
+                        && !has_part0
+                        && !has_mdmpart
+                        && task
+                            .total_bytes
+                            .map(|tot| tot > 0 && meta.len() >= tot)
+                            .unwrap_or(false)
+                    {
+                        self.update_task_progress(
+                            &task.id,
+                            meta.len(),
+                            &DownloadStatus::Completed,
+                            None,
+                            Some(Utc::now()),
+                            Some(&task.segments),
+                        )?;
+                        count += 1;
+                        continue;
+                    }
+                }
+
                 let is_multi = task.supports_range && task.segments.len() > 1;
                 let mut total_on_disk = 0u64;
 
@@ -303,6 +327,7 @@ impl Database {
     pub fn delete_task(&self, id: &str) -> Result<()> {
         let conn = self.conn();
         conn.execute("DELETE FROM downloads WHERE id = ?1", params![id])?;
+        let _ = conn.execute_batch("PRAGMA wal_checkpoint(PASSIVE);");
         Ok(())
     }
 

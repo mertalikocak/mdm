@@ -82,11 +82,14 @@ SQLite database initialized in `%LOCALAPPDATA%\mdm` (WAL mode):
 
 ## Session Handoff
 - **Completed this session**:
-  - Fixed horizontal overflow in `DownloadTable`, `Sidebar`, and `Navbar` (`src/components/DownloadTable.tsx`, `src/components/Sidebar.tsx`, `src/components/Navbar.tsx`) so default `1150px` and smaller window sizes no longer clip right-side **"İşlemler"** actions or toolbar controls: switched the table to `table-fixed w-full`, tightened fixed column widths so long filenames truncate cleanly inside `Dosya Adı`, added responsive breakpoints (`w-14 md:w-44 lg:w-52` sidebar, progressive column visibility on narrow windows, `min-w-0` / `shrink-0` navbar guards).
-  - Verified `npx tsc --noEmit && npm run build` (exit 0, `4.80s`), rebuilt release binaries (`cargo build --release --bins --features custom-protocol`, exit 0, `2m 17s`), synced locally, rebuilt NSIS installer `Mak Download Manager_0.1.0_x64-setup.exe` (`7,337,270` bytes, SHA-256 `d4a36e47d5c1d7991cfb74bad422319e2c2edf5423912f8e266975900f572caf`), and refreshed `latest.json` + distribution archives.
-- **Remaining/incomplete work**: Push responsive layout commit to `https://github.com/mertalikocak/mdm.git`; user publishing GitHub Release `v0.1.0` with `Mak Download Manager_0.1.0_x64-setup.exe` and `latest.json`.
-- **Current implementation status**: All code, binaries, NSIS installer, and docs updated cleanly.
+  - Fixed startup ghost downloads, multiple tray instances, and reboot deletion/status resurrection (`browser-extension/background.js`, `src-tauri/src/main.rs`, `src-tauri/src/bin/mdm_host.rs`, `src-tauri/src/native_messaging/mod.rs`, `src-tauri/src/db/repository.rs`):
+    - Restricted `shouldInterceptDownload` in `background.js` to active (`in_progress`), unpaused, non-extension downloads started within the last 15 seconds so browser startup history replay is ignored.
+    - Added Windows named kernel mutex `Local\MakDownloadManager_SingleInstance_v1` in `src-tauri/src/main.rs` + `is_mdm_app_running()` guard and hidden `Command::new` spawn in `launch_mdm_app()` (`native_messaging/mod.rs`) + 10x250ms IPC launch retry loop in `src-tauri/src/bin/mdm_host.rs`.
+    - Hardened SQLite WAL durability (`PRAGMA synchronous = FULL`, `PRAGMA wal_checkpoint(PASSIVE)` on `delete_task`) and updated `reconcile_on_startup()` to finalize already-merged tasks whose destination file matches `total_bytes` without `.part0`/`.mdmpart` files on disk.
+  - Verified `npx tsc --noEmit && npm run build` (exit 0, `2.84s`), `cargo test` (`31 passed, 0 failed` in `4.11s`), `cargo build --release --bins --features custom-protocol` (`1m 27s`), synced locally, rebuilt extension ZIP + NSIS installer (`7,339,987` bytes, SHA-256 `90c559f80b9a3be172952dd58c499439ddf922f0cabd9f2e496d0f878a7dde3b`), and updated `latest.json`.
+- **Remaining/incomplete work**: Push commit to `https://github.com/mertalikocak/mdm.git`; user updating browser extension & reinstalling/publishing GitHub Release `v0.1.0` on other PCs.
+- **Current implementation status**: All fixes verified, compiled, packaged, and ready to push.
 - **Known errors or blockers**: None.
-- **Exact next recommended step**: Push to GitHub `main` and visually verify MDM window resizing on Windows desktop.
-- **Important files to inspect when continuing**: `src/components/DownloadTable.tsx`, `src/components/Sidebar.tsx`, `src/components/Navbar.tsx`.
-- **Tests still to be executed**: Live desktop resize check across `650px`–`1150px` window widths (Rust tests were not re-run for this CSS/TSX-only edit; last passed 31/31 prior to UI tweak).
+- **Exact next recommended step**: Push to GitHub `main` and reload unpacked extension / reinstall setup on target PC.
+- **Important files to inspect when continuing**: `browser-extension/background.js`, `src-tauri/src/main.rs`, `src-tauri/src/bin/mdm_host.rs`, `src-tauri/src/db/repository.rs`.
+- **Tests still to be executed**: Live PC reboot / Chrome startup verification with pre-existing Chrome download history.

@@ -56,5 +56,46 @@ fn main() {
         }
     }
 
+    // Kernel-level single-instance mutex prevents concurrent startup races from spawning duplicate tray instances
+    #[cfg(target_os = "windows")]
+    let _instance_mutex = {
+        use std::ffi::c_void;
+
+        #[link(name = "kernel32")]
+        extern "system" {
+            fn CreateMutexW(
+                lpMutexAttributes: *const c_void,
+                bInitialOwner: i32,
+                lpName: *const u16,
+            ) -> *mut c_void;
+            fn GetLastError() -> u32;
+            fn CloseHandle(hObject: *mut c_void) -> i32;
+        }
+
+        struct MutexGuard(*mut c_void);
+        impl Drop for MutexGuard {
+            fn drop(&mut self) {
+                if !self.0.is_null() {
+                    unsafe {
+                        CloseHandle(self.0);
+                    }
+                }
+            }
+        }
+
+        const ERROR_ALREADY_EXISTS: u32 = 183;
+        let name: Vec<u16> = "Local\\MakDownloadManager_SingleInstance_v1\0"
+            .encode_utf16()
+            .collect();
+        let handle = unsafe { CreateMutexW(std::ptr::null(), 1, name.as_ptr()) };
+        if !handle.is_null() && unsafe { GetLastError() } == ERROR_ALREADY_EXISTS {
+            unsafe {
+                CloseHandle(handle);
+            }
+            return;
+        }
+        MutexGuard(handle)
+    };
+
     mdm_lib::run();
 }

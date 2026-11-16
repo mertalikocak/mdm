@@ -346,7 +346,13 @@ const fallbackBrowserUrls = new Set();
 
 function shouldInterceptDownload(downloadItem) {
   if (!interceptDownloadsEnabled || !downloadItem) return false;
-  if (downloadItem.byExtensionId && downloadItem.byExtensionId === chrome.runtime.id) return false;
+  if (downloadItem.state && downloadItem.state !== "in_progress") return false;
+  if (downloadItem.byExtensionId) return false;
+  if (downloadItem.paused === true) return false;
+  if (downloadItem.startTime) {
+    const startedMs = Date.parse(downloadItem.startTime);
+    if (!Number.isNaN(startedMs) && Date.now() - startedMs > 15000) return false;
+  }
   const url = downloadItem.finalUrl || downloadItem.url || "";
   if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
   if (fallbackBrowserUrls.has(url)) return false;

@@ -204,3 +204,18 @@
 - `cmd /c "cd src-tauri && cargo build --release --bins --features custom-protocol"` -> exit code `0` (`2m 17s`).
 - Synced release binaries, rebuilt NSIS installer (`7,337,270` bytes), updated ZIPs and `latest.json` (`sha256: d4a36e47d5c1d7991cfb74bad422319e2c2edf5423912f8e266975900f572caf`). (Rust tests were not re-run for this UI-only change; last passed 31/31 prior to UI change).
 **Known issues:** None.
+
+### [2026-11-16] - Fix Browser History Re-Interception, Duplicate Tray Instances & Reboot DB Durability
+
+**Summary:** Prevented Chrome/Brave download history from triggering mass ghost downloads and duplicate tray windows on PC reboot, and hardened SQLite WAL durability and startup reconciliation so deleted or completed tasks survive abrupt resets.
+**Modified files:** `browser-extension/background.js`, `src-tauri/src/main.rs`, `src-tauri/src/native_messaging/mod.rs`, `src-tauri/src/bin/mdm_host.rs`, `src-tauri/src/db/repository.rs`, `latest.json`, `docs/PROJECT_CONTEXT.md`.
+**Technical details:**
+- Filtered `shouldInterceptDownload` (`browser-extension/background.js`) to accept only active `in_progress`, unpaused, non-extension downloads whose `startTime` is within 15 seconds of now.
+- Added a Windows Win32 named mutex (`Local\MakDownloadManager_SingleInstance_v1`) in `src-tauri/src/main.rs`, prevented duplicate `launch_mdm_app()` spawns via `is_mdm_app_running()` + hidden direct launch (`native_messaging/mod.rs`), and added a 10x250ms IPC retry loop after launch in `src-tauri/src/bin/mdm_host.rs`.
+- Switched SQLite `PRAGMA synchronous = FULL` in `Database::new`, added `PRAGMA wal_checkpoint(PASSIVE)` to `delete_task()`, and updated `reconcile_on_startup()` in `repository.rs` to mark intact merged files without `.part0`/`.mdmpart` as `Completed`.
+**Database changes:** None (PRAGMA & reconciliation logic only).
+**Tests:**
+- `cmd /c "npx tsc --noEmit && npm run build"` -> exit code `0` (`vite` built 1607 modules in `2.84s`, `prepare-resources.cjs` OK).
+- `cmd /c "cd src-tauri && cargo test && cargo build --release --bins --features custom-protocol"` -> exit code `0` (`tests\integration_tests.rs`: 31 passed, 0 failed in `4.11s`; release compiled in `1m 27s`).
+- Synced binaries & extension files, rebuilt extension ZIP and NSIS installer (`7,339,987` bytes), updated archives and `latest.json` (`sha256: 90c559f80b9a3be172952dd58c499439ddf922f0cabd9f2e496d0f878a7dde3b`).
+**Known issues:** Existing browser installations must reload the unpacked extension (`browser-extension`) and reinstall or update `mdm.exe` / `mdm_host.exe`.

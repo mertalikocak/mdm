@@ -64,21 +64,37 @@ async fn main() {
                         match ipc_res {
                             Ok(app_resp) => app_resp,
                             Err(e) => {
-                                let err_entry = format!("   -> IPC failed: {}. Running fallback.\n", e);
-                                let _ = std::fs::OpenOptions::new()
-                                    .create(true)
-                                    .append(true)
-                                    .open(app_data_dir.join("host.log"))
-                                    .and_then(|mut f| std::io::Write::write_all(&mut f, err_entry.as_bytes()));
+                                let mut retry_resp = None;
+                                if !matches!(parsed_req, ExtensionRequest::Ping) {
+                                    mdm_lib::native_messaging::launch_mdm_app();
+                                    for _ in 0..10 {
+                                        tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+                                        if let Ok(resp) = mdm_lib::native_messaging::ipc::send_ipc_to_app(&parsed_req).await {
+                                            retry_resp = Some(resp);
+                                            break;
+                                        }
+                                    }
+                                }
 
-                                // Fallback: MDM is not running, handle locally and launch app
-                                handle_extension_request(
-                                    Arc::clone(&database),
-                                    &bin_dir,
-                                    &default_download_dir.to_string_lossy(),
-                                    parsed_req,
-                                )
-                                .await
+                                if let Some(app_resp) = retry_resp {
+                                    app_resp
+                                } else {
+                                    let err_entry = format!("   -> IPC failed: {}. Running fallback.\n", e);
+                                    let _ = std::fs::OpenOptions::new()
+                                        .create(true)
+                                        .append(true)
+                                        .open(app_data_dir.join("host.log"))
+                                        .and_then(|mut f| std::io::Write::write_all(&mut f, err_entry.as_bytes()));
+
+                                    // Fallback: MDM is not running, handle locally and launch app
+                                    handle_extension_request(
+                                        Arc::clone(&database),
+                                        &bin_dir,
+                                        &default_download_dir.to_string_lossy(),
+                                        parsed_req,
+                                    )
+                                    .await
+                                }
                             }
                         }
                     }

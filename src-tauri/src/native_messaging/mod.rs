@@ -372,24 +372,31 @@ fn is_mdm_app_running() -> bool {
 
 /// Launch or bring mdm.exe to foreground on Windows
 pub fn launch_mdm_app() -> bool {
+    if is_mdm_app_running() {
+        return true;
+    }
+
     #[cfg(target_os = "windows")]
     {
+        use std::os::windows::process::CommandExt;
         use std::process::Command;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+
         // Search current exe directory or app directory
         if let Ok(current_exe) = std::env::current_exe() {
             if let Some(dir) = current_exe.parent() {
                 let mdm_candidate = dir.join("mdm.exe");
                 if mdm_candidate.is_file() {
-                    let res = Command::new("cmd.exe")
-                        .args(["/c", "start", "", mdm_candidate.to_str().unwrap()])
+                    let res = Command::new(mdm_candidate)
+                        .creation_flags(CREATE_NO_WINDOW)
                         .spawn();
                     return res.is_ok();
                 }
             }
         }
         // Fallback: start via system PATH
-        let res = Command::new("cmd.exe")
-            .args(["/c", "start", "", "mdm.exe"])
+        let res = Command::new("mdm.exe")
+            .creation_flags(CREATE_NO_WINDOW)
             .spawn();
         return res.is_ok();
     }
